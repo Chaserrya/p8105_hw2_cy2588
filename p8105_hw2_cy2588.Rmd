@@ -12,12 +12,13 @@ library(readxl)
 
 ## problem 1
 
-dataset
+path to data:  
+
 ```{r}
 path_to_data = "./data/Trash-Wheel-Collection-Totals-8-6-19.xlsx"
 ```
 
-read data
+Read and clean the Mr. Trash Wheel sheet:  
 
 ```{r}
 trashwheel_df = 
@@ -33,8 +34,7 @@ trashwheel_df =
 	)
 ```
 
-
-Read precipitation data! For 2018 and 2017. 
+Read precipitation data for 2018 and 2017. 
 
 ```{r}
 precip_2018 = 
@@ -59,7 +59,7 @@ precip_2017 =
 	relocate(year)
 ```
 
-Now combine annual precipitation dataframes. In the following code chunk, I create a "helper" tibble that contains pairs of numeric and character ways of representing month, and then merge that (using month number as a key) with the precipitation dataset. This technique is one I use often when I need to recode a moderate or large number of values for a variable. 
+combine precipitation datasets and convert month to a character variable.
 
 ```{r}
 month_df = 
@@ -73,9 +73,62 @@ precip_df =
 	left_join(precip_df, month_df, by = "month")
 ```
 
-This dataset contains information from the Mr. Trashwheel trash collector in Baltimore, Maryland. As trash enters the inner harbor, the trashwheel collects that trash, and stores it in a dumpster. The dataset contains information on year, month, and trash collected, include some specific kinds of trash. There are a total of `r nrow(trashwheel_df)` rows in our final dataset. Additional data sheets include month precipitation data. In this dataset:
 
-* The median number of sports balls found in a dumpster in 2017 was `r trashwheel_df %>% filter(year == 2017) %>% pull(sports_balls) %>% median()`
+This dataset contains information from the Mr. Trashwheel trash collector in Baltimore, Maryland. As trash enters the inner harbor, the trashwheel collects that trash, and stores it in a dumpster. The Mr. Trash Wheel spreadsheet is largely self-explanatory, and includes information on the dumpter number, date of collection, amount of total litter and litter type. 
+The dataset contains information on year, month, and trash collected, include some specific kinds of trash. There are a total of `r nrow(trashwheel_df)` rows in our final dataset. Additional data sheets include month precipitation data. 
+
+In this precipitation dataset:
 * The total precipitation in 2018 was `r precip_df %>% filter(year == 2018) %>% pull(total) %>% sum()` inches.
+* The median number of sports balls found in a dumpster in 2017 was `r trashwheel_df %>% filter(year == 2017) %>% pull(sports_balls) %>% median()`
+
+## problem 2
+
+read and clear data
+
+```{r}
+nyc_transit_df= 
+	read.csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>% 
+	janitor::clean_names()  %>% 
+  select(line: entry, vending, ada) %>% 
+  mutate(entry = recode(entry, YES = TRUE, NO = FALSE))%>% 
+  mutate(vending = recode(vending, YES = TRUE, NO = FALSE))
+```
+
+This dataset contains   . As trash enters the inner harbor, the trashwheel collects that trash, and stores it in a dumpster. The Mr. Trash Wheel spreadsheet is largely self-explanatory, and includes information on the dumpter number, date of collection, amount of total litter and litter type. 
+The dataset contains information on   , include   . There are a total of `r nrow(nyc_transit_df)` rows and `r ncol(nyc_transit_df)` cols in the resulting dataset.
+
+How many distinct stations are there? 
+```{r}
+distinct_stations = nyc_transit_df  %>% 
+	distinct(station_name, .keep_all = TRUE) %>% 
+  distinct(line, .keep_all = TRUE)
+```
+ There are `r nrow(distinct_stations)` distinct stations.
+
+How many stations are ADA compliant?
+```{r}
+ADA_comliant = filter(distinct_stations, ada == T)
+```
+There are `r nrow(ADA_comliant)` stations are ADA compliant.
+
+What proportion of station entrances / exits without vending allow entrance?
+```{r}
+without_vending = filter(nyc_transit_df, vending == F)
+allow = filter(without_vending, entry == T)
+proportion = nrow(allow)/ nrow(without_vending)*100
+```
+The proportion of station entrances / exits without vending allow entrance is `r proportion`%
+
+
+
+
+
+
+
+
+
+
+
+
 
 
