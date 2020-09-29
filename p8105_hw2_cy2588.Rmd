@@ -138,17 +138,12 @@ There are `r nrow(distinct_station_A)` distinct stations serve the A train.
 First, clean the data in pols-month.csv
 
 ```{r}
-month_df_p3 = 
-	tibble(
-		month = 1:12,
-		month_name = month.name
-	)
 pols_month_df= 
 	read.csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% 
 	janitor::clean_names()  %>% 
   separate(mon, into = c("year","month","day")) %>%
-  mutate_at(vars(year:day), as.numeric) 
-tidy_data_mon = left_join(pols_month_df, month_df_p3, by = "month") %>%
+  mutate_at(vars(year:day), as.numeric) %>%
+  left_join(month_df, by = "month") %>%
   mutate(month = month_name) %>%
   select(-month_name) %>%
 mutate(president = case_when(
@@ -156,7 +151,7 @@ mutate(president = case_when(
     prez_dem == "1" ~ "dem"
   )) %>% 
   select(-day, -prez_gop, -prez_dem)
-  tail(tidy_data_mon)
+  tail(pols_month_df)
 ```
 
 
@@ -165,25 +160,45 @@ Second, clean the data in snp.csv using a similar process to the above
 snp_df= 
 	read.csv("./data/fivethirtyeight_datasets/snp.csv") %>% 
 	janitor::clean_names() %>% 
-  separate(date, into = c("month","day","year")) %>% 
+  separate(date, into = c("day","month","year")) %>%
+  mutate_at(vars(year:day), as.numeric) %>%
+  left_join(month_df, by = "month") %>%
+  mutate(month = month_name) %>%
+  select(-month_name, -day) %>%
   relocate(year,month)
   str(snp_df)
+  tail(snp_df)
 ```
 
 Third, tidy the unemployment data so that it can be merged with the previous datasets. 
 ```{r}
 unemployment_df= 
 	read.csv("./data/fivethirtyeight_datasets/unemployment.csv") %>% 
-	janitor::clean_names() %>% 
-  pivot_longer(
-   jan:dec,
+	janitor::clean_names()
+  colnames(unemployment_df)[2:13] = month.name
+unemployment_df = pivot_longer(unemployment_df,
+   January:December,
    names_to = "month",
-   values_to = "percentage" )
- str(unemployment_df)
-
+   values_to = "unempolyment_%" )
+str(unemployment_df)
 ```
 
-
 Join the datasets
+```{r}
+result_df = pols_month_df %>%
+  left_join(snp_df, by = c("month","year")) %>%
+  left_join(unemployment_df, by = c("month","year"))
+tail(result_df)
+```
+
+Explain briefly what each dataset contained, and describe the resulting dataset。
+The first dataset “pols-month” contains 822 observations of 9 variables related to the number of national politicians who are democratic or republican at any given time.
+
+The second dataset “snp” contains 787 observations of 2 variables related to Standard & Poor’s stock market index (S&P), often used as a representative measure of stock market as a whole.
+
+The third dataset  “unemployment” contains 68 observations of 13 variables related to the umemployment rate at any given time.
+
+In the resulting dataser,
+
 
 
