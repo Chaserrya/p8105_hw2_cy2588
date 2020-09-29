@@ -114,18 +114,19 @@ What proportion of station entrances / exits without vending allow entrance?
 ```{r}
 without_vending = filter(nyc_transit_df, vending == F)
 allow = filter(without_vending, entry == T)
-proportion = nrow(allow)/ nrow(without_vending)*100
+proportion_allow = nrow(allow)/ nrow(without_vending)
 ```
-The proportion of station entrances / exits without vending allow entrance is `r proportion`%
+The proportion of station entrances / exits without vending allow entrance is `r proportion_allow*100`%
 
 Now, reformat the data
 ```{r}
 reformate_data = distinct_stations%>% 
   mutate_at(vars(route8:route11), as.character)%>%
 pivot_longer(
-route1:route11,
-names_to = "route_name",
-values_to = "route_number" )
+   route1:route11,
+   names_to = "route_name",
+   values_to = "route_number" )
+tail(reformate_data)
 distinct_station_A = filter(reformate_data, route_number == "A")
 ADA_comliant_A = filter(distinct_station_A, ada == T)
 ```
@@ -139,25 +140,48 @@ First, clean the data in pols-month.csv
 ```{r}
 month_df_p3 = 
 	tibble(
-		month = as.character(01:12),
+		month = 1:12,
 		month_name = month.name
 	)
 pols_month_df= 
 	read.csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% 
 	janitor::clean_names()  %>% 
-  separate(mon, into = c("year","month","day"))
-  left_join(pols_month_df, month_df_p3, by = "month")
+  separate(mon, into = c("year","month","day")) %>%
+  mutate_at(vars(year:day), as.numeric) 
+tidy_data_mon = left_join(pols_month_df, month_df_p3, by = "month") %>%
+  mutate(month = month_name) %>%
+  select(-month_name) %>%
+mutate(president = case_when(
+    prez_gop == "1" ~ "gop",
+    prez_dem == "1" ~ "dem"
+  )) %>% 
+  select(-day, -prez_gop, -prez_dem)
+  tail(tidy_data_mon)
 ```
 
 
 Second, clean the data in snp.csv using a similar process to the above
-
-
-
+```{r}
+snp_df= 
+	read.csv("./data/fivethirtyeight_datasets/snp.csv") %>% 
+	janitor::clean_names() %>% 
+  separate(date, into = c("month","day","year")) %>% 
+  relocate(year,month)
+  str(snp_df)
+```
 
 Third, tidy the unemployment data so that it can be merged with the previous datasets. 
+```{r}
+unemployment_df= 
+	read.csv("./data/fivethirtyeight_datasets/unemployment.csv") %>% 
+	janitor::clean_names() %>% 
+  pivot_longer(
+   jan:dec,
+   names_to = "month",
+   values_to = "percentage" )
+ str(unemployment_df)
 
-
+```
 
 
 Join the datasets
