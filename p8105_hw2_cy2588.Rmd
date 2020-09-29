@@ -106,7 +106,7 @@ How many distinct stations are there?
 distinct_stations = nyc_transit_df  %>% 
 	distinct(station_name, line, .keep_all = T)
 ```
- There are `r nrow(distinct_stations)` distinct stations.
+There are `r nrow(distinct_stations)` distinct stations.
 
 How many stations are ADA compliant?
 
@@ -203,7 +203,7 @@ tail(result_df)
 Explain briefly what each dataset contained, and describe the resulting dataset.  
 * The first dataset “pols-month” contains 822 observations of 9 variables related to the number of national politicians who are democratic or republican at any given time.  
 * The second dataset “snp” contains 787 observations of 2 variables related to Standard & Poor’s stock market index (S&P), often used as a representative measure of stock market as a whole.  
-* The third dataset  “unemployment” contains 68 observations of 13 variables related to the umemployment rate at any given time.
+* The third dataset  “unemployment” contains 68 observations of 13 variables related to the umemployment rate at any given time.  
 * The resulting dataset is in `r nrow(result_df)` x `r ncol(result_df)` dimension, and the years range of data is `r range(pull(result_df, year))`. The resulting dataset contains 11 variables, which are: `r ls(result_df)`.  
 
 
