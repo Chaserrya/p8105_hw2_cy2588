@@ -111,9 +111,9 @@ There are `r nrow(distinct_stations)` distinct stations.
 How many stations are ADA compliant?
 
 ```{r}
-ADA_comliant = filter(distinct_stations, ada == T)
+ADA_compliant = filter(distinct_stations, ada == T)
 ```
-There are `r nrow(ADA_comliant)` stations are ADA compliant.
+There are `r nrow(ADA_compliant)` stations are ADA compliant.
 
 What proportion of station entrances / exits without vending allow entrance?
 ```{r}
