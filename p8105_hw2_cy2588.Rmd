@@ -100,8 +100,7 @@ The dataset contains information on   , include   . There are a total of `r nrow
 How many distinct stations are there? 
 ```{r}
 distinct_stations = nyc_transit_df  %>% 
-	distinct(station_name, .keep_all = TRUE) %>% 
-  distinct(line, .keep_all = TRUE)
+	distinct(station_name, line, .keep_all = T)
 ```
  There are `r nrow(distinct_stations)` distinct stations.
 
@@ -119,16 +118,48 @@ proportion = nrow(allow)/ nrow(without_vending)*100
 ```
 The proportion of station entrances / exits without vending allow entrance is `r proportion`%
 
+Now, reformat the data
+```{r}
+reformate_data = distinct_stations%>% 
+  mutate_at(vars(route8:route11), as.character)%>%
+pivot_longer(
+route1:route11,
+names_to = "route_name",
+values_to = "route_number" )
+distinct_station_A = filter(reformate_data, route_number == "A")
+ADA_comliant_A = filter(distinct_station_A, ada == T)
+```
+There are `r nrow(distinct_station_A)` distinct stations serve the A train.
+`r nrow(ADA_comliant_A)` of the stations are ADA compliant.
+
+## problem 3
+
+First, clean the data in pols-month.csv
+
+```{r}
+month_df_p3 = 
+	tibble(
+		month = as.character(01:12),
+		month_name = month.name
+	)
+pols_month_df= 
+	read.csv("./data/fivethirtyeight_datasets/pols-month.csv") %>% 
+	janitor::clean_names()  %>% 
+  separate(mon, into = c("year","month","day"))
+  left_join(pols_month_df, month_df_p3, by = "month")
+```
+
+
+Second, clean the data in snp.csv using a similar process to the above
 
 
 
 
+Third, tidy the unemployment data so that it can be merged with the previous datasets. 
 
 
 
 
-
-
-
+Join the datasets
 
 
