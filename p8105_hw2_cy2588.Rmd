@@ -27,7 +27,7 @@ trashwheel_df =
 		sheet = "Mr. Trash Wheel",
 		range = cell_cols("A:N")) %>% 
 	janitor::clean_names() %>% 
-	drop_na(dumpster) %>% 
+  drop_na(dumpster) %>% 
 	mutate(
 		sports_balls = round(sports_balls),
 		sports_balls = as.integer(sports_balls)
@@ -78,7 +78,8 @@ This dataset contains information from the Mr. Trashwheel trash collector in Bal
 
 The dataset contains information on year, month, and trash collected, include some specific kinds of trash. There are a total of `r nrow(trashwheel_df)` rows in our final dataset. Additional data sheets include month precipitation data. 
 
-In this precipitation dataset:
+In this precipitation dataset:  
+
 * The total precipitation in 2018 was `r precip_df %>% filter(year == 2018) %>% pull(total) %>% sum()` inches.  
 * The median number of sports balls found in a dumpster in 2017 was `r trashwheel_df %>% filter(year == 2017) %>% pull(sports_balls) %>% median()`
 
@@ -91,8 +92,10 @@ nyc_transit_df=
 	read.csv("./data/NYC_Transit_Subway_Entrance_And_Exit_Data.csv") %>% 
 	janitor::clean_names()  %>% 
   select(line: entry, vending, ada) %>% 
-  mutate(entry = recode(entry, YES = TRUE, NO = FALSE))%>% 
-  mutate(vending = recode(vending, YES = TRUE, NO = FALSE))
+  mutate(
+    entry = recode(entry, YES = TRUE, NO = FALSE),
+    vending = recode(vending, YES = TRUE, NO = FALSE)
+    )
 ```
 Write a short paragraph about this dataset – explain briefly what variables the dataset contains, describe your data cleaning steps so far, and give the dimension (rows x columns) of the resulting dataset. Are these data tidy?
 
@@ -106,38 +109,36 @@ How many distinct stations are there?
 distinct_stations = nyc_transit_df  %>% 
 	distinct(station_name, line, .keep_all = T)
 ```
-There are `r nrow(distinct_stations)` distinct stations.
+* There are `r nrow(distinct_stations)` distinct stations.
 
 How many stations are ADA compliant?
 
 ```{r}
 ADA_compliant = filter(distinct_stations, ada == T)
 ```
-There are `r nrow(ADA_compliant)` stations are ADA compliant.
+* There are `r nrow(ADA_compliant)` stations are ADA compliant.
 
 What proportion of station entrances / exits without vending allow entrance?
 ```{r}
 without_vending = filter(nyc_transit_df, vending == F)
-allow = filter(without_vending, entry == T)
-proportion_allow = nrow(allow)/ nrow(without_vending)
+allow_entr = filter(without_vending, entry == T)
 ```
-The proportion of station entrances / exits without vending allow entrance is `r proportion_allow*100`%  
+* The proportion of station entrances / exits without vending allow entrance is `r nrow(allow_entr)/ nrow(without_vending)*100`%  
 
 Now, reformat the data
 
 ```{r}
 reformate_data = distinct_stations%>% 
   mutate_at(vars(route8:route11), as.character)%>%
-pivot_longer(
-   route1:route11,
-   names_to = "route_name",
-   values_to = "route_number" )
-tail(reformate_data)
+  pivot_longer(
+    route1:route11,
+    names_to = "route_name",
+    values_to = "route_number" )
 distinct_station_A = filter(reformate_data, route_number == "A")
 ADA_comliant_A = filter(distinct_station_A, ada == T)
 ```
-There are `r nrow(distinct_station_A)` distinct stations serve the A train.  
-`r nrow(ADA_comliant_A)` of the stations are ADA compliant.
+* There are `r nrow(distinct_station_A)` distinct stations serve the A train.  
+* `r nrow(ADA_comliant_A)` of the stations are ADA compliant.
 
 ## problem 3
 
@@ -152,12 +153,12 @@ pols_month_df=
   left_join(month_df, by = "month") %>%
   mutate(month = month_name) %>%
   select(-month_name) %>%
-mutate(president = case_when(
-    prez_gop == "1" ~ "gop",
-    prez_dem == "1" ~ "dem"
+  mutate(
+    president = case_when(
+      prez_gop == "1" ~ "gop",
+      prez_dem == "1" ~ "dem"
   )) %>% 
   select(-day, -prez_gop, -prez_dem)
-  tail(pols_month_df)
 ```
 
 
@@ -173,8 +174,6 @@ snp_df=
   mutate(month = month_name) %>%
   select(-month_name, -day) %>%
   relocate(year,month)
-  str(snp_df)
-  tail(snp_df)
 ```
 
 Third, tidy the unemployment data so that it can be merged with the previous datasets. 
@@ -182,13 +181,12 @@ Third, tidy the unemployment data so that it can be merged with the previous dat
 ```{r}
 unemployment_df= 
 	read.csv("./data/fivethirtyeight_datasets/unemployment.csv") %>% 
-	janitor::clean_names()
-  colnames(unemployment_df)[2:13] = month.name
+	janitor::clean_names() 
+colnames(unemployment_df)[2:13] = month.name
 unemployment_df = pivot_longer(unemployment_df,
    January:December,
    names_to = "month",
    values_to = "unempolyment_%" )
-str(unemployment_df)
 ```
 
 Join the datasets
@@ -197,14 +195,14 @@ Join the datasets
 result_df = pols_month_df %>%
   left_join(snp_df, by = c("month","year")) %>%
   left_join(unemployment_df, by = c("month","year"))
-tail(result_df)
 ```
 
 Explain briefly what each dataset contained, and describe the resulting dataset.  
+
 * The first dataset “pols-month” contains 822 observations of 9 variables related to the number of national politicians who are democratic or republican at any given time.  
 * The second dataset “snp” contains 787 observations of 2 variables related to Standard & Poor’s stock market index (S&P), often used as a representative measure of stock market as a whole.  
 * The third dataset  “unemployment” contains 68 observations of 13 variables related to the umemployment rate at any given time.  
-* The resulting dataset is in `r nrow(result_df)` x `r ncol(result_df)` dimension, and the years range of data is `r range(pull(result_df, year))`. The resulting dataset contains 11 variables, which are: `r ls(result_df)`.  
+* The resulting dataset is in `r nrow(result_df)` x `r ncol(result_df)` dimension, and the years range of data is `r range(pull(result_df, year))`. The resulting dataset contains 11 variables, which are: `r names(result_df)`.  
 
 
 
